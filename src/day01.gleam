@@ -8,7 +8,7 @@ import gleam/string
 import simplifile
 
 pub fn main() {
-  let assert Ok(raw) = simplifile.read("./q1.txt")
+  let assert Ok(raw) = simplifile.read("./day01.txt")
   io.debug(solve2(raw))
 }
 

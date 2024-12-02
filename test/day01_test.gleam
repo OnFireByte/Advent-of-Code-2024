@@ -1,5 +1,5 @@
+import day01
 import gleeunit/should
-import q1
 
 pub fn solve_test() {
   "3   4
@@ -8,7 +8,7 @@ pub fn solve_test() {
 1   3
 3   9
 3   3"
-  |> q1.solve()
+  |> day01.solve()
   |> should.equal(11)
 }
 
@@ -19,6 +19,6 @@ pub fn solve2_test() {
 1   3
 3   9
 3   3"
-  |> q1.solve2()
+  |> day01.solve2()
   |> should.equal(31)
 }

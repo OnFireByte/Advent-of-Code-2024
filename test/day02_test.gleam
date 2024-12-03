@@ -1,90 +1,89 @@
-import day02
-import gleam/bool
 import gleam/int
 import gleam/io
-import gleeunit/should
+import gleam/list
+import gleam/option.{None, Some}
+import gleam/order
+import gleam/result
+import gleam/string
+import simplifile
 
-pub fn solve1_test() {
-  "7 6 4 2 1
-1 2 7 8 9
-9 7 6 2 1
-1 3 2 4 5
-8 6 4 4 1
-1 3 6 7 9"
-  |> day02.parse
-  |> day02.part1
-  |> should.equal(2)
+pub fn main() {
+  let assert Ok(raw) = simplifile.read("./day02.txt")
+  let data = parse(raw)
+  list.each(data, io.debug)
+  io.debug(part1(data))
+  io.debug(part2(data))
 }
 
-pub fn solve2_test() {
-  "7 6 4 2 110000
-1 2 7 8 9
-9 7 6 2 1
-1 3 2 4 5
-8 6 4 4 1
-100 3 6 7 9
-1 10000 2
-10 1 11
-4 2 3 2 0 -2 -3 -4 -6 -8"
-  |> day02.parse
-  |> day02.part2
-  |> should.equal(7)
-}
-
-pub fn random_test() {
-  for(0, 100_000, fn(_) {
-    let sign = {
-      case int.random(1) {
-        0 -> -1
-        1 -> 1
-        _ -> 0
-      }
-    }
-
-    let l = create(int.random(10), 10, sign, True)
-    let res = day02.part2([l])
-    case res {
-      1 -> Nil
-      _ -> {
-        io.debug(l)
-        Nil
-      }
-    }
+pub fn parse(raw: String) {
+  raw
+  |> string.trim
+  |> string.split("\n")
+  |> list.map(fn(x) {
+    x
+    |> string.split(" ")
+    |> list.map(fn(a) { int.parse(a) |> result.unwrap(0) })
   })
 }
 
-fn create(a, n, sign, can_error) {
-  case n {
-    0 -> []
-    _ -> {
-      let delta = int.random(2) + 1
-      let random = can_error && int.random(5) == 0
-      let r = bool.to_int(random)
-      let new = { a + delta * sign } * { 1 - r } + int.random(1_000_000) * r
-      [
-        new,
-        ..create(
-          {
-            case random {
-              True -> a
-              False -> new
-            }
-          },
-          n - 1,
-          sign,
-          can_error && !random,
-        )
-      ]
+pub fn part1(data: List(List(Int))) {
+  list.count(data, is_safe1)
+}
+
+fn is_safe1(report) {
+  let assert [first, ..rest] = report
+  is_safe1_loop(rest, first, order.Gt) || is_safe1_loop(rest, first, order.Lt)
+}
+
+fn is_safe1_loop(report: List(Int), first, order) {
+  case report {
+    [] -> True
+    [second, ..rest] ->
+      int.compare(first, second) == order
+      && int.absolute_value(first - second) <= 3
+      && is_safe1_loop(rest, second, order)
+  }
+}
+
+pub fn part2(data: List(List(Int))) {
+  list.count(data, is_safe2)
+}
+
+fn is_safe2(report) {
+  let assert [first, ..rest] = report
+  is_safe2_loop(rest, None, first, order.Gt, False)
+  || is_safe2_loop(rest, None, first, order.Lt, False)
+}
+
+fn is_safe2_loop(
+  report: List(Int),
+  old: option.Option(Int),
+  first: Int,
+  order: order.Order,
+  is_skipped: Bool,
+) {
+  case report {
+    [] -> True
+    [second, ..rest] -> {
+      let valid = is_valid(Some(first), second, order)
+
+      case valid, is_skipped {
+        True, _ -> is_safe2_loop(rest, Some(first), second, order, is_skipped)
+        False, False ->
+          is_safe2_loop(rest, old, first, order, True)
+          || {
+            is_valid(old, second, order)
+            && is_safe2_loop(rest, old, second, order, True)
+          }
+        _, _ -> False
+      }
     }
   }
 }
 
-fn for(start, end, func) {
-  case start <= end {
-    False -> Nil
-    True -> {
-      func(start)
-      for(start + 1, end, func)
-    }
+fn is_valid(a, b, order) {
+  case a {
+    None -> True
+    Some(a) -> int.compare(a, b) == order && int.absolute_value(a - b) <= 3
   }
 }

@@ -27,41 +27,35 @@ pub fn parse(raw: String) {
 }
 
 pub fn part1(data: List(List(Int))) {
-  data
-  |> list.fold(0, fn(acc, report) {
-    let assert [first, ..rest] = report
-    case is_safe1(rest, first, order.Gt) || is_safe1(rest, first, order.Lt) {
-      True -> acc + 1
-      False -> acc
-    }
-  })
+  list.count(data, is_safe1)
 }
 
-fn is_safe1(report: List(Int), first, order) {
+fn is_safe1(report) {
+  let assert [first, ..rest] = report
+  is_safe1_loop(rest, first, order.Gt) || is_safe1_loop(rest, first, order.Lt)
+}
+
+fn is_safe1_loop(report: List(Int), first, order) {
   case report {
     [] -> True
     [second, ..rest] ->
       int.compare(first, second) == order
       && int.absolute_value(first - second) <= 3
-      && is_safe1(rest, second, order)
+      && is_safe1_loop(rest, second, order)
   }
 }
 
 pub fn part2(data: List(List(Int))) {
-  data
-  |> list.fold(0, fn(acc, report) {
-    let assert [first, ..rest] = report
-    case
-      is_safe2(rest, None, first, order.Gt, False)
-      || is_safe2(rest, None, first, order.Lt, False)
-    {
-      True -> acc + 1
-      False -> acc
-    }
-  })
+  list.count(data, is_safe2)
 }
 
-fn is_safe2(
+fn is_safe2(report) {
+  let assert [first, ..rest] = report
+  is_safe2_loop(rest, None, first, order.Gt, False)
+  || is_safe2_loop(rest, None, first, order.Lt, False)
+}
+
+fn is_safe2_loop(
   report: List(Int),
   old: option.Option(Int),
   first: Int,
@@ -74,12 +68,12 @@ fn is_safe2(
       let valid = is_valid(Some(first), second, order)
 
       case valid, is_skipped {
-        True, _ -> is_safe2(rest, Some(first), second, order, is_skipped)
+        True, _ -> is_safe2_loop(rest, Some(first), second, order, is_skipped)
         False, False ->
-          is_safe2(rest, old, first, order, True)
+          is_safe2_loop(rest, old, first, order, True)
           || {
             is_valid(old, second, order)
-            && is_safe2(rest, old, second, order, True)
+            && is_safe2_loop(rest, old, second, order, True)
           }
         _, _ -> False
       }

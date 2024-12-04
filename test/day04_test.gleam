@@ -1,0 +1,34 @@
+import day04
+import gleeunit/should
+
+pub fn solve1_test() {
+  "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX"
+  |> day04.parse
+  |> day04.part1
+  |> should.equal(18)
+}
+
+pub fn solve2_test() {
+  "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX"
+  |> day04.parse
+  |> day04.part2
+  |> should.equal(9)
+}

@@ -66,8 +66,8 @@ fn find_xmas(map, i, j) {
 }
 
 fn check_adj(map, i, j, x, y, char) {
-  case char == "", dict.get(map, #(i, j)) {
-    True, _ -> 1
+  case char, dict.get(map, #(i, j)) {
+    "", _ -> 1
     _, Ok(v) if v == char ->
       check_adj(map, i + x, j + y, x, y, get_next_xmas_char(char))
     _, _ -> 0

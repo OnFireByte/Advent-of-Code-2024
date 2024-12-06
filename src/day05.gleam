@@ -13,7 +13,7 @@ import simplifile
 pub fn main() {
   let assert Ok(raw) = simplifile.read("./day05.txt")
   bench.run(
-    [bench.Input("day 4", raw)],
+    [bench.Input("day 5", raw)],
     [
       bench.Function("part1", fn(v) { parse(v) |> part1 }),
       bench.Function("part2", fn(v) { parse(v) |> part2 }),

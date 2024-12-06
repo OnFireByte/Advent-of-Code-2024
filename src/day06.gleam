@@ -5,12 +5,23 @@ import gleam/list
 import gleam/result
 import gleam/set
 import gleam/string
+import gleamy/bench
 import parallel_map
 import simplifile
 
 pub fn main() {
   let assert Ok(raw) = simplifile.read("./day06.txt")
   let data = parse(raw)
+  bench.run(
+    [bench.Input("day 6", raw)],
+    [
+      bench.Function("part1", fn(v) { parse(v) |> part1 }),
+      bench.Function("part2", fn(v) { parse(v) |> part2 }),
+    ],
+    [bench.Duration(5000), bench.Warmup(100)],
+  )
+  |> bench.table([bench.IPS, bench.Min, bench.P(99)])
+  |> io.println()
   io.debug(part1(data))
   io.debug(part2(data))
 }
@@ -48,14 +59,17 @@ pub fn parse(raw: String) {
 
 pub fn part1(tup) {
   let #(map, #(r, c, direction)) = tup
-  walk1(map, r, c, direction, set.new())
+  let res =
+    walk1(map, r, c, direction, set.new())
+    |> set.size()
+  res + 1
 }
 
 fn walk1(map, r, c, direction, memo) {
   let new_pos = next_pos(r, c, direction)
 
   case dict.get(map, new_pos) {
-    Error(Nil) -> set.size(memo) + 1
+    Error(Nil) -> memo
     Ok(Empty) -> {
       let #(new_r, new_c) = new_pos
       walk1(map, new_r, new_c, direction, set.insert(memo, #(r, c)))
@@ -102,17 +116,15 @@ fn rotate(direction) {
 
 pub fn part2(tup) {
   let #(map, #(r, c, direction)) = tup
-  map
-  |> dict.to_list
+  let visited = walk1(map, r, c, direction, set.new())
+  visited
+  |> set.delete(#(r, c))
+  |> set.to_list
+  // I know that iterator is deprecated, but it is what it is
   |> iterator.from_list
   |> parallel_map.iterator_pmap(
-    fn(p) {
-      let #(pos, floor) = p
-      case floor, #(r, c) == pos {
-        Empty, False ->
-          walk2(map |> dict.insert(pos, Obstruct), r, c, direction, set.new())
-        _, _ -> 0
-      }
+    fn(pos) {
+      walk2(map |> dict.insert(pos, Obstruct), r, c, direction, set.new())
     },
     parallel_map.WorkerAmount(16),
     1_000_000,
@@ -128,7 +140,7 @@ fn walk2(map, r, c, direction, memo) {
     _, True -> 1
     Ok(Empty), _ -> {
       let #(new_r, new_c) = new_pos
-      walk2(map, new_r, new_c, direction, set.insert(memo, #(r, c, direction)))
+      walk2(map, new_r, new_c, direction, memo)
     }
     Ok(Obstruct), _ -> {
       let #(#(new_r, new_c), new_direction) =

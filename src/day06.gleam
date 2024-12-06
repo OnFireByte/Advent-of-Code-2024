@@ -62,14 +62,14 @@ pub fn part1(tup) {
   let res =
     walk1(map, r, c, direction, set.new())
     |> set.size()
-  res + 1
+  res
 }
 
 fn walk1(map, r, c, direction, memo) {
   let new_pos = next_pos(r, c, direction)
 
   case dict.get(map, new_pos) {
-    Error(Nil) -> memo
+    Error(Nil) -> memo |> set.insert(#(r, c))
     Ok(Empty) -> {
       let #(new_r, new_c) = new_pos
       walk1(map, new_r, new_c, direction, set.insert(memo, #(r, c)))

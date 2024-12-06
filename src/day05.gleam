@@ -88,7 +88,6 @@ fn is_valid1(line, map, prev) {
             })
           case valid {
             True -> is_valid1(rest, map, set.insert(prev, page))
-
             False -> False
           }
         }
@@ -126,17 +125,17 @@ pub fn fix_line(line_set, new, map) {
   case set.is_empty(line_set) {
     True -> list.reverse(new)
     False -> {
-      let el =
-        set.fold(line_set, 0, fn(acc, v) {
-          let valid =
-            list.all(dict.get(map, v) |> result.unwrap([]), fn(need) {
-              !set.contains(line_set, need)
-            })
-          case valid {
-            True -> v
-            False -> acc
-          }
-        })
+      let el = {
+        use acc, v <- set.fold(line_set, 0)
+        let valid =
+          list.all(dict.get(map, v) |> result.unwrap([]), fn(need) {
+            !set.contains(line_set, need)
+          })
+        case valid {
+          True -> v
+          False -> acc
+        }
+      }
       fix_line(set.delete(line_set, el), [el, ..new], map)
     }
   }

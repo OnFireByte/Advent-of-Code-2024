@@ -1,4 +1,3 @@
-import gleam/dict
 import gleam/io
 import gleam/iterator
 import gleam/list
@@ -6,6 +5,7 @@ import gleam/result
 import gleam/set
 import gleam/string
 import gleamy/bench
+import glearray
 import parallel_map
 import simplifile
 
@@ -39,22 +39,32 @@ pub type Direction {
 }
 
 pub fn parse(raw: String) {
-  raw
-  |> string.split("\n")
-  |> list.index_fold(#(dict.new(), #(0, 0, Up)), fn(acc, line, i) {
-    line
-    |> string.to_graphemes
-    |> list.index_fold(acc, fn(acc, v, j) {
-      case v {
-        "#" -> #(dict.insert(acc.0, #(i, j), Obstruct), acc.1)
-        "^" -> #(dict.insert(acc.0, #(i, j), Empty), #(i, j, Up))
-        "v" -> #(dict.insert(acc.0, #(i, j), Empty), #(i, j, Down))
-        "<" -> #(dict.insert(acc.0, #(i, j), Empty), #(i, j, Left))
-        ">" -> #(dict.insert(acc.0, #(i, j), Empty), #(i, j, Right))
-        _ -> #(dict.insert(acc.0, #(i, j), Empty), acc.1)
-      }
+  let #(reversed_array, guard_pos) =
+    raw
+    |> string.split("\n")
+    |> list.index_fold(#([], #(0, 0, Up)), fn(acc, line, i) {
+      let #(parsed_line, pos) =
+        line
+        |> string.to_graphemes
+        |> list.index_fold(#([], acc.1), fn(acc, v, j) {
+          case v {
+            "#" -> #([Obstruct, ..acc.0], acc.1)
+            "^" -> #([Empty, ..acc.0], #(i, j, Up))
+            "v" -> #([Empty, ..acc.0], #(i, j, Down))
+            "<" -> #([Empty, ..acc.0], #(i, j, Left))
+            ">" -> #([Empty, ..acc.0], #(i, j, Right))
+            _ -> #([Empty, ..acc.0], acc.1)
+          }
+        })
+      #([parsed_line, ..acc.0], pos)
     })
-  })
+
+  let arr =
+    reversed_array
+    |> list.map(fn(line) { glearray.from_list(list.reverse(line)) })
+    |> list.reverse
+    |> glearray.from_list
+  #(arr, guard_pos)
 }
 
 pub fn part1(tup) {
@@ -63,10 +73,17 @@ pub fn part1(tup) {
   |> set.size()
 }
 
+pub fn get_map(map: glearray.Array(glearray.Array(a)), pos: #(Int, Int)) {
+  case glearray.get(map, pos.0) {
+    Error(_) -> Error(Nil)
+    Ok(data) -> glearray.get(data, pos.1)
+  }
+}
+
 fn walk1(map, r, c, direction, memo) {
   let new_pos = next_pos(r, c, direction)
 
-  case dict.get(map, new_pos) {
+  case get_map(map, new_pos) {
     Error(Nil) -> memo |> set.insert(#(r, c))
     Ok(Empty) -> {
       let #(new_r, new_c) = new_pos
@@ -97,7 +114,7 @@ fn next_pos(r, c, direction) {
 fn rotate_until_valid(map, r, c, direction) {
   let new_d = rotate(direction)
   let next_p = next_pos(r, c, new_d)
-  case dict.get(map, next_p) {
+  case get_map(map, next_p) {
     Ok(Obstruct) -> rotate_until_valid(map, r, c, new_d)
     _ -> #(next_p, new_d)
   }
@@ -112,6 +129,17 @@ fn rotate(direction) {
   }
 }
 
+pub fn insert_to_map(
+  map: glearray.Array(glearray.Array(a)),
+  pos: #(Int, Int),
+  el: a,
+) {
+  let assert Ok(inner) = glearray.get(map, pos.0)
+  let assert Ok(new_inner) = glearray.copy_set(inner, pos.1, el)
+  let assert Ok(new_map) = glearray.copy_set(map, pos.0, new_inner)
+  new_map
+}
+
 pub fn part2(tup) {
   let #(map, #(r, c, direction)) = tup
   let visited = walk1(map, r, c, direction, set.new())
@@ -122,7 +150,7 @@ pub fn part2(tup) {
   |> iterator.from_list
   |> parallel_map.iterator_pmap(
     fn(pos) {
-      walk2(map |> dict.insert(pos, Obstruct), r, c, direction, set.new())
+      walk2(map |> insert_to_map(pos, Obstruct), r, c, direction, set.new())
     },
     parallel_map.WorkerAmount(16),
     1_000_000,
@@ -133,7 +161,7 @@ pub fn part2(tup) {
 fn walk2(map, r, c, direction, memo) {
   let new_pos = next_pos(r, c, direction)
 
-  case dict.get(map, new_pos), set.contains(memo, #(r, c, direction)) {
+  case get_map(map, new_pos), set.contains(memo, #(r, c, direction)) {
     Error(Nil), _ -> 0
     _, True -> 1
     Ok(Empty), _ -> {

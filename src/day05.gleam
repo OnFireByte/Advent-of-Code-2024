@@ -20,7 +20,7 @@ pub fn main() {
     ],
     [bench.Duration(1000), bench.Warmup(100)],
   )
-  |> bench.table([bench.IPS, bench.Min, bench.P(99)])
+  |> bench.table([bench.IPS, bench.Min, bench.Mean, bench.P(99)])
   |> io.println()
   let data = parse(raw)
   io.debug(part1(data))

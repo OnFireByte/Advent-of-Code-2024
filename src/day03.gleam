@@ -43,15 +43,15 @@ fn lazy_early(r: Result(a, b), f: fn() -> c, then: fn(a) -> c) {
   }
 }
 
-fn inner_parser(tokens: String, parser, acc) {
-  use #(num1, rest) <- lazy_early(read_int(tokens, "", ","), fn() {
-    parser(tokens, acc)
-  })
-  use #(num2, rest) <- lazy_early(read_int(rest, "", ")"), fn() {
-    parser(rest, acc)
-  })
-  parser(rest, [num1 * num2, ..acc])
-}
+// fn inner_parser(tokens: String, parser, acc) {
+//   use #(num1, rest) <- lazy_early(read_int(tokens, "", ","), fn() {
+//     parser(tokens, acc)
+//   })
+//   use #(num2, rest) <- lazy_early(read_int(rest, "", ")"), fn() {
+//     parser(rest, acc)
+//   })
+//   parser(rest, [num1 * num2, ..acc])
+// }
 
 fn inner_parser1(tokens: String, acc) {
   use #(num1, rest) <- lazy_early(read_int(tokens, "", ","), fn() {

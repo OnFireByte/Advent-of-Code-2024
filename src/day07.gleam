@@ -11,7 +11,7 @@ pub fn main() {
   let assert Ok(raw) = simplifile.read("./day07.txt")
   let data = parse(raw |> string.trim)
   bench.run(
-    [bench.Input("day 6", raw)],
+    [bench.Input("day 7", raw)],
     [
       bench.Function("part1", fn(v) { parse(v) |> part1 }),
       bench.Function("part1 (bool)", fn(v) { parse(v) |> part1_bool }),

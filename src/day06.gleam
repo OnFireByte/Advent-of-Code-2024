@@ -1,4 +1,5 @@
 import gleam/dict
+import gleam/int
 import gleam/io
 import gleam/iterator
 import gleam/list
@@ -118,16 +119,20 @@ pub fn part2(tup) {
   visited
   |> set.delete(#(r, c))
   |> set.to_list
-  // I know that iterator is deprecated, but it is what it is
-  |> iterator.from_list
-  |> parallel_map.iterator_pmap(
-    fn(pos) {
-      walk2(map |> dict.insert(pos, Obstruct), r, c, direction, set.new())
-    },
-    parallel_map.WorkerAmount(16),
-    1_000_000,
-  )
-  |> iterator.fold(0, fn(acc, res) { acc + { res |> result.unwrap(0) } })
+  // Parallelized, but iterator is deprecated
+  // |> iterator.from_list
+  // |> parallel_map.iterator_pmap(
+  //   fn(pos) {
+  //     walk2(map |> dict.insert(pos, Obstruct), r, c, direction, set.new())
+  //   },
+  //   parallel_map.WorkerAmount(16),
+  //   1_000_000,
+  // )
+  // |> iterator.fold(0, fn(acc, res) { acc + { res |> result.unwrap(0) } })
+  |> list.map(fn(pos) {
+    walk2(map |> dict.insert(pos, Obstruct), r, c, direction, set.new())
+  })
+  |> int.sum
 }
 
 fn walk2(map, r, c, direction, memo) {

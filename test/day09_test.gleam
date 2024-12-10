@@ -1,5 +1,4 @@
 import day09
-import gleam/io
 import gleeunit/should
 
 pub fn solve1_test() {

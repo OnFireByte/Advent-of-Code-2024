@@ -1,13 +1,10 @@
 import gleam/int
 import gleam/io
-import gleam/iterator
 import gleam/list
-import gleam/result
 import gleam/set
 import gleam/string
 import gleamy/bench
 import glearray
-import parallel_map
 import simplifile
 
 pub fn main() {

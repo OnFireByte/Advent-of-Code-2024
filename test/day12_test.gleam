@@ -1,0 +1,34 @@
+import day12
+import gleeunit/should
+
+pub fn solve1_test() {
+  "RRRRIICCFF
+RRRRIICCCF
+VVRRRCCFFF
+VVRCCCJFFF
+VVVVCJJCFE
+VVIVCCJJEE
+VVIIICJJEE
+MIIIIIJJEE
+MIIISIJEEE
+MMMISSJEEE"
+  |> day12.parse
+  |> day12.part1
+  |> should.equal(1930)
+}
+
+pub fn solve2_test() {
+  "RRRRIICCFF
+RRRRIICCCF
+VVRRRCCFFF
+VVRCCCJFFF
+VVVVCJJCFE
+VVIVCCJJEE
+VVIIICJJEE
+MIIIIIJJEE
+MIIISIJEEE
+MMMISSJEEE"
+  |> day12.parse
+  |> day12.part2
+  |> should.equal(1206)
+}

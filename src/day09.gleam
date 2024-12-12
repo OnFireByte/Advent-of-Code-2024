@@ -268,7 +268,6 @@ fn cal_checksum(l: List(#(option.Option(Int), Int)), i, acc) {
   }
 }
 
-
 fn cal(from, to, v, acc) {
   case from == to {
     True -> acc
